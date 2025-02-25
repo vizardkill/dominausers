@@ -1,10 +1,8 @@
 import * as path from "node:path";
-import { defineConfig } from "@rspack/cli";
 import { rspack } from "@rspack/core";
 import * as RefreshPlugin from "@rspack/plugin-react-refresh";
 import { ModuleFederationPlugin } from "@module-federation/enhanced/rspack";
 import { withZephyr } from "zephyr-rspack-plugin";
-
 import { mfConfig } from "./module-federation.config";
 
 const isDev = process.env.NODE_ENV === "development";
@@ -13,80 +11,81 @@ const isDev = process.env.NODE_ENV === "development";
 const targets = ["chrome >= 87", "edge >= 88", "firefox >= 78", "safari >= 14"];
 
 export default withZephyr()({
-  context: __dirname,
-  entry: {
-    main: "./src/index.ts",
-  },
-  resolve: {
-    extensions: ["...", ".ts", ".tsx", ".jsx"],
-  },
+    context: __dirname,
+    entry: {
+        main: "./src/index.ts",
+    },
+    resolve: {
+        extensions: ["...", ".ts", ".tsx", ".jsx"],
+    },
 
-  devServer: {
-    port: 4002,
-    historyApiFallback: true,
-    watchFiles: [path.resolve(__dirname, "src")],
-  },
-  output: {
-    // You need to set a unique value that is not equal to other applications
-    uniqueName: "dominausers",
-    // publicPath must be configured if using manifest
-    publicPath: "http://localhost:4002/",
-  },
+    devServer: {
+        port: 4002,
+        historyApiFallback: true,
+        watchFiles: [path.resolve(__dirname, "src")],
+    },
+    output: {
+        // You need to set a unique value that is not equal to other applications
+        uniqueName: "dominausers",
+        // publicPath must be configured if using manifest
+        publicPath: "http://localhost:4002/",
+    },
 
-  experiments: {
-    css: true,
-  },
+    experiments: {
+        css: true
+    },
 
-  module: {
-    rules: [
-      {
-        test: /\.svg$/,
-        type: "asset",
-      },
-      {
-        test: /\.css$/,
-        use: ["postcss-loader"],
-        type: "css",
-      },
-      {
-        test: /\.(jsx?|tsx?)$/,
-        use: [
-          {
-            loader: "builtin:swc-loader",
-            options: {
-              jsc: {
-                parser: {
-                  syntax: "typescript",
-                  tsx: true,
-                },
-                transform: {
-                  react: {
-                    runtime: "automatic",
-                    development: isDev,
-                    refresh: isDev,
-                  },
-                },
-              },
-              env: { targets },
+    module: {
+        rules: [
+            {
+                test: /\.svg$/,
+                type: "asset",
             },
-          },
+            {
+                test: /\.css$/,
+                use: ["postcss-loader"],
+                type: "css",
+            },
+            {
+                test: /\.(jsx?|tsx?)$/,
+                use: [
+                    {
+                        loader: "builtin:swc-loader",
+                        options: {
+                            jsc: {
+                                parser: {
+                                    syntax: "typescript",
+                                    tsx: true,
+                                },
+                                transform: {
+                                    react: {
+                                        runtime: "automatic",
+                                        development: isDev,
+                                        refresh: isDev,
+                                    },
+                                },
+                            },
+                            env: { targets },
+                        },
+                    },
+                ],
+            },
         ],
-      },
-    ],
-  },
-  plugins: [
-    new rspack.HtmlRspackPlugin({
-      template: "./index.html",
-    }),
-    new ModuleFederationPlugin(mfConfig),
-    isDev ? new RefreshPlugin() : null,
-  ].filter(Boolean),
-  optimization: {
-    minimizer: [
-      new rspack.SwcJsMinimizerRspackPlugin(),
-      new rspack.LightningCssMinimizerRspackPlugin({
-        minimizerOptions: { targets },
-      }),
-    ],
-  },
+    },
+    plugins: [
+        new rspack.HtmlRspackPlugin({
+            template: "./index.html",
+        }),
+        new ModuleFederationPlugin(mfConfig),
+        isDev ? new RefreshPlugin() : null,
+        new rspack.CssExtractRspackPlugin({})
+    ].filter(Boolean),
+    optimization: {
+        minimizer: [
+            new rspack.SwcJsMinimizerRspackPlugin(),
+            new rspack.LightningCssMinimizerRspackPlugin({
+                minimizerOptions: { targets },
+            }),
+        ],
+    },
 });
